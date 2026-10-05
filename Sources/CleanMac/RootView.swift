@@ -60,12 +60,15 @@ struct RootView: View {
 
 struct DiskUsageView: View {
     var body: some View {
-        let d = FS.diskSpace()
-        let used = Double(max(d.total - d.free, 0))
-        VStack(alignment: .leading, spacing: 4) {
-            ProgressView(value: d.total > 0 ? used / Double(d.total) : 0)
-            Text("\(d.free.bytesString) free of \(d.total.bytesString)")
-                .font(.caption).foregroundStyle(.secondary)
+        // re-read the volume stats every second so the bar follows cleanups right away
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            let d = FS.diskSpace()
+            let used = Double(max(d.total - d.free, 0))
+            VStack(alignment: .leading, spacing: 4) {
+                ProgressView(value: d.total > 0 ? used / Double(d.total) : 0)
+                Text("\(d.free.bytesString) free of \(d.total.bytesString)")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
         }
     }
 }
