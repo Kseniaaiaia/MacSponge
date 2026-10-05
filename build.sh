@@ -24,5 +24,8 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
-codesign --force --sign - "$APP"
+# A stable signing identity keeps macOS privacy grants (Full Disk Access) across rebuilds;
+# ad-hoc signing ("-") changes the identity every build and the grant is lost.
+IDENTITY="${SIGN_IDENTITY:-$(security find-identity -v -p codesigning | sed -n 's/.*"\(Apple Development:[^"]*\)".*/\1/p' | head -1)}"
+codesign --force --sign "${IDENTITY:--}" "$APP"
 echo "Built $APP"
