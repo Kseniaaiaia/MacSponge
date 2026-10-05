@@ -97,6 +97,7 @@ final class UninstallModel {
     var leftoverSelection = Set<URL>()
     var isLoading = false
     var isFindingLeftovers = false
+    var isWorking = false
     var message: String?
     var search = ""
 
@@ -143,11 +144,13 @@ final class UninstallModel {
             return
         }
         let chosen = leftovers.filter { leftoverSelection.contains($0.url) }
+        isWorking = true; message = nil
         let r = await Task.detached { UninstallService.uninstall(app: app, leftovers: chosen) }.value
         message = r.errors.isEmpty
             ? "Moved \(r.trashed) item(s) to Trash"
             : "Moved \(r.trashed) item(s); failed: " + r.errors.joined(separator: "; ")
         selectedID = nil; leftovers = []; leftoverSelection = []
+        isWorking = false
         apps = await Task.detached { UninstallService.listApps() }.value
     }
 }

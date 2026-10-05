@@ -123,3 +123,23 @@ struct FileIcon: View {
             .resizable().frame(width: size, height: size)
     }
 }
+
+/// Prominent button that swaps its label for a spinner + busy title while work is running.
+struct BusyButton: View {
+    let title: String
+    let busyTitle: String
+    let isBusy: Bool
+    var disabled = false
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                if isBusy { ProgressView().controlSize(.small) }
+                Text(isBusy ? busyTitle : title)
+            }
+            .frame(minWidth: 90)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(disabled || isBusy)
+    }
+}

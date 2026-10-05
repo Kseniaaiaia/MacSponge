@@ -56,6 +56,7 @@ final class LargeFilesModel {
     var all: [BigFile] = []
     var selection = Set<URL>()
     var isScanning = false
+    var isTrashing = false
     var hasScanned = false
     var scanned = 0
     var message: String?
@@ -80,9 +81,11 @@ final class LargeFilesModel {
 
     func trashSelected() async {
         let files = selectedFiles
+        isTrashing = true; message = nil
         let r = await Task.detached { LargeFilesService.trash(files) }.value
         all.removeAll { r.done.contains($0.url) }
         selection.subtract(r.done)
+        isTrashing = false
         message = r.failed == 0
             ? "Moved \(r.done.count) file(s) to Trash — \(r.freed.bytesString) (empty the Trash to reclaim it)"
             : "Moved \(r.done.count) file(s); \(r.failed) failed"

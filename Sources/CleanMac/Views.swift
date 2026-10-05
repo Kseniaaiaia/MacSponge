@@ -17,10 +17,8 @@ struct TrashView: View {
                  ? (model.count == 0 ? "The Trash is empty" : "\(model.count) item(s) in the Trash")
                  : "Can't read the Trash — grant Full Disk Access")
                 .foregroundStyle(.secondary)
-            Button("Empty Trash") { confirm = true }
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                .disabled(model.count == 0 || model.isBusy)
-            if model.isBusy { ProgressView().controlSize(.small) }
+            BusyButton(title: "Empty Trash", busyTitle: "Emptying…", isBusy: model.isBusy, disabled: model.count == 0) { confirm = true }
+                .controlSize(.large)
             if let m = model.message { Text(m).font(.callout).foregroundStyle(.green) }
             Spacer()
         }
@@ -44,8 +42,8 @@ struct JunkView: View {
     var body: some View {
         VStack(spacing: 0) {
             PageHeader(title: "System Junk", subtitle: "Caches, logs and developer leftovers that are safe to regenerate.")
-            if model.isScanning {
-                Spacer(); ProgressView("Scanning…"); Spacer()
+            if model.isScanning || model.isCleaning {
+                Spacer(); ProgressView(model.isCleaning ? "Cleaning…" : "Scanning…"); Spacer()
             } else if !model.hasScanned {
                 Spacer()
                 Button("Scan") { Task { await model.scan() } }
@@ -84,11 +82,11 @@ struct JunkView: View {
                     }
                 }
             }
-            BottomBar(text: model.message ?? (model.hasScanned ? "\(model.selectedSize.bytesString) selected of \(model.totalSize.bytesString)" : "")) {
+            BottomBar(text: model.isCleaning ? "Cleaning \(model.selectedSize.bytesString)… don't close the app"
+                      : model.message ?? (model.hasScanned ? "\(model.selectedSize.bytesString) selected of \(model.totalSize.bytesString)" : "")) {
                 Button("Rescan") { Task { await model.scan() } }.disabled(model.isScanning || model.isCleaning)
-                Button("Clean") { confirm = true }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(model.selection.isEmpty || model.isScanning || model.isCleaning)
+                BusyButton(title: "Clean", busyTitle: "Cleaning…", isBusy: model.isCleaning,
+                           disabled: model.selection.isEmpty || model.isScanning) { confirm = true }
             }
         }
         .task { if !model.hasScanned { await model.scan() } }
@@ -132,10 +130,10 @@ struct UninstallerView: View {
                 Divider()
                 detail.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            BottomBar(text: model.message ?? (model.selected != nil ? "\(model.removalSize.bytesString) will be moved to the Trash" : "")) {
-                Button("Uninstall") { confirm = true }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(model.selected == nil || model.isFindingLeftovers)
+            BottomBar(text: model.isWorking ? "Uninstalling…"
+                      : model.message ?? (model.selected != nil ? "\(model.removalSize.bytesString) will be moved to the Trash" : "")) {
+                BusyButton(title: "Uninstall", busyTitle: "Uninstalling…", isBusy: model.isWorking,
+                           disabled: model.selected == nil || model.isFindingLeftovers) { confirm = true }
             }
         }
         .task { if model.apps.isEmpty { await model.load() } }
@@ -237,10 +235,10 @@ struct LargeFilesView: View {
                     }
                 }
             }
-            BottomBar(text: model.message ?? (model.hasScanned ? "\(model.selection.count) selected · \(model.selectedSize.bytesString)" : "")) {
-                Button("Move to Trash") { confirm = true }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(model.selectedFiles.isEmpty)
+            BottomBar(text: model.isTrashing ? "Moving files to the Trash…"
+                      : model.message ?? (model.hasScanned ? "\(model.selection.count) selected · \(model.selectedSize.bytesString)" : "")) {
+                BusyButton(title: "Move to Trash", busyTitle: "Moving…", isBusy: model.isTrashing,
+                           disabled: model.selectedFiles.isEmpty) { confirm = true }
             }
         }
         .alert("Move \(model.selectedFiles.count) file(s) to the Trash?", isPresented: $confirm) {
