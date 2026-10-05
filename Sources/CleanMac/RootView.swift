@@ -1,13 +1,14 @@
 import SwiftUI
 
 enum Tool: String, CaseIterable, Identifiable {
-    case trash, junk, uninstaller, large
+    case trash, junk, uninstaller, space, large
     var id: String { rawValue }
     var title: String {
         switch self {
         case .trash: "Trash"
         case .junk: "System Junk"
         case .uninstaller: "Uninstaller"
+        case .space: "Space Lens"
         case .large: "Large & Old Files"
         }
     }
@@ -16,6 +17,7 @@ enum Tool: String, CaseIterable, Identifiable {
         case .trash: "trash"
         case .junk: "sparkles"
         case .uninstaller: "xmark.app"
+        case .space: "chart.pie"
         case .large: "doc.zipper"
         }
     }
@@ -26,6 +28,7 @@ struct RootView: View {
     @State private var trash = TrashModel()
     @State private var junk = JunkModel()
     @State private var uninstaller = UninstallModel()
+    @State private var space = SpaceLensModel()
     @State private var large = LargeFilesModel()
     @State private var hasFDA = FS.hasFullDiskAccess()
 
@@ -43,6 +46,7 @@ struct RootView: View {
                 case .trash: TrashView(model: trash)
                 case .junk: JunkView(model: junk)
                 case .uninstaller: UninstallerView(model: uninstaller)
+                case .space: SpaceLensView(model: space)
                 case .large: LargeFilesView(model: large)
                 }
             }

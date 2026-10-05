@@ -36,6 +36,9 @@ enum FS {
         guard let en = fm.enumerator(at: url, includingPropertiesForKeys: Array(sizeKeys),
                                      options: [], errorHandler: { _, _ in true }) else { return 0 }
         while let u = en.nextObject() as? URL {
+            if Task.isCancelled { break }
+            // firmlinked / mounted volumes would double-count the whole disk
+            if u.path == "/System/Volumes" || u.path == "/Volumes" { en.skipDescendants(); continue }
             guard let rv = try? u.resourceValues(forKeys: sizeKeys),
                   rv.isSymbolicLink != true, rv.isDirectory != true else { continue }
             total += Int64(rv.totalFileAllocatedSize ?? rv.fileAllocatedSize ?? 0)
