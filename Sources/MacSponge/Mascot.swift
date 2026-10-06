@@ -3,7 +3,7 @@ import RiveRuntime
 
 /// Sponge mascot. Plays the first `.riv` found in the app bundle (Contents/Resources/*.riv);
 /// until an animation exists it falls back to the static mascot picture.
-/// The Rive state machine is expected to expose a Bool input called `isScanning`.
+/// Expects the state machine "State Machine 1" with a Bool input `isScanning` (Idle ↔ Dance).
 struct MascotView: View {
     var isScanning: Bool = true
     var size: CGFloat = 180
@@ -35,7 +35,7 @@ private struct RiveMascot: View {
     init(fileName: String, isScanning: Bool) {
         self.fileName = fileName
         self.isScanning = isScanning
-        _rive = StateObject(wrappedValue: RiveViewModel(fileName: fileName, stateMachineName: nil, fit: .contain))
+        _rive = StateObject(wrappedValue: RiveViewModel(fileName: fileName, stateMachineName: "State Machine 1", fit: .contain))
     }
 
     var body: some View {
