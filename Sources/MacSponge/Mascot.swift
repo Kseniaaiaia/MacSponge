@@ -70,9 +70,10 @@ private struct RiveMascot: View {
 /// Mascot + caption, shown while something is being scanned or cleaned.
 struct BusyMascot: View {
     let title: String
+    var size: CGFloat = 320
     var body: some View {
         VStack(spacing: 14) {
-            MascotView(isScanning: true, size: 320)
+            MascotView(isScanning: true, size: size)
             Text(title).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -22,13 +22,6 @@ struct TrashView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
-        .task { await model.refresh() }
-        .alert("Empty the Trash?", isPresented: $confirm) {
-            Button("Empty Trash", role: .destructive) { Task { await model.empty() } }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("\(model.size.bytesString) will be permanently deleted. This can't be undone.")
-        }
     }
 }
 
@@ -123,7 +116,7 @@ struct UninstallerView: View {
                         }
                         .tag(app.id)
                     }
-                    .overlay { if model.isLoading { ProgressView() } }
+                    .overlay { if model.isLoading { BusyMascot(title: "Loading apps…", size: 110) } }
                 }
                 .frame(width: 320)
                 Divider()
@@ -158,8 +151,10 @@ struct UninstallerView: View {
                 }
                 .padding(16)
                 Divider()
-                if model.isFindingLeftovers {
-                    Spacer(); ProgressView("Looking for leftovers…").frame(maxWidth: .infinity); Spacer()
+                if model.isWorking {
+                    BusyMascot(title: "Uninstalling…")
+                } else if model.isFindingLeftovers {
+                    BusyMascot(title: "Looking for leftovers…")
                 } else if model.leftovers.isEmpty {
                     Spacer(); Text("No leftover files found").foregroundStyle(.secondary).frame(maxWidth: .infinity); Spacer()
                 } else {

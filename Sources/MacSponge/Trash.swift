@@ -32,6 +32,7 @@ final class TrashModel {
     var size: Int64 = 0
     var accessible = true
     var isBusy = false
+    var isEmptying = false
     var message: String?
 
     func refresh() async {
@@ -42,11 +43,12 @@ final class TrashModel {
     }
 
     func empty() async {
-        isBusy = true
+        isBusy = true; isEmptying = true; message = nil
         let r = await Task.detached { TrashService.empty() }.value
         message = r.failed == 0
             ? "Freed \(r.freed.bytesString)"
             : "Freed \(r.freed.bytesString); \(r.failed) item(s) couldn't be removed"
         await refresh()
+        isEmptying = false
     }
 }
