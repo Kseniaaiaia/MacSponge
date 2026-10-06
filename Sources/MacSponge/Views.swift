@@ -9,8 +9,7 @@ struct TrashView: View {
     var body: some View {
         VStack(spacing: 14) {
             Spacer()
-            Image(systemName: model.count == 0 ? "trash" : "trash.fill")
-                .font(.system(size: 72)).foregroundStyle(.secondary)
+            MascotView(isScanning: model.isBusy, size: 240)
             Text(model.size.bytesString)
                 .font(.system(size: 44, weight: .semibold, design: .rounded))
             Text(model.accessible

@@ -72,7 +72,7 @@ struct BusyMascot: View {
     let title: String
     var body: some View {
         VStack(spacing: 14) {
-            MascotView(isScanning: true)
+            MascotView(isScanning: true, size: 320)
             Text(title).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
