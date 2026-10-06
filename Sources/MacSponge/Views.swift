@@ -22,6 +22,13 @@ struct TrashView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        .task { await model.refresh() }
+        .alert("Empty the Trash?", isPresented: $confirm) {
+            Button("Empty Trash", role: .destructive) { Task { await model.empty() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("\(model.size.bytesString) will be permanently deleted. This can't be undone.")
+        }
     }
 }
 
