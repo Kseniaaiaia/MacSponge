@@ -14,6 +14,17 @@ enum TrashService {
         return Scan(count: visible.count, size: FS.sizes(of: items).reduce(0, +), accessible: true)
     }
 
+    private static func emptyViaFinder() -> Bool {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        p.arguments = ["-e", "tell application \"Finder\" to empty trash"]
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        do { try p.run() } catch { return false }
+        p.waitUntilExit()
+        return p.terminationStatus == 0
+    }
+
     /// Permanently deletes everything in the Trash. Returns (freed bytes, failures).
     static func empty() -> (freed: Int64, failed: Int) {
         let items = FS.children(of: url)
@@ -21,6 +32,12 @@ enum TrashService {
         var freed: Int64 = 0, failed = 0
         for (item, size) in zip(items, sizes) {
             do { try FS.fm.removeItem(at: item); freed += size } catch { failed += 1 }
+        }
+        // root-owned leftovers (e.g. apps installed by an admin) need Finder, which asks for the password
+        if failed > 0 && emptyViaFinder() {
+            let remaining = FS.children(of: url).filter { $0.lastPathComponent != ".DS_Store" }
+            freed = sizes.reduce(0, +) - FS.sizes(of: remaining).reduce(0, +)
+            failed = remaining.count
         }
         return (freed, failed)
     }
