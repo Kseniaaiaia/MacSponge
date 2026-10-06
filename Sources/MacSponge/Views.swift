@@ -43,7 +43,7 @@ struct JunkView: View {
         VStack(spacing: 0) {
             PageHeader(title: "System Junk", subtitle: "Caches, logs and developer leftovers that are safe to regenerate.")
             if model.isScanning || model.isCleaning {
-                Spacer(); ProgressView(model.isCleaning ? "Cleaning…" : "Scanning…"); Spacer()
+                BusyMascot(title: model.isCleaning ? "Cleaning…" : "Scanning…")
             } else if !model.hasScanned {
                 Spacer()
                 Button("Scan") { Task { await model.scan() } }
@@ -208,7 +208,7 @@ struct LargeFilesView: View {
             .padding(.horizontal, 24).padding(.bottom, 10)
             Divider()
             if model.isScanning {
-                Spacer(); ProgressView("Scanning… \(model.scanned) files"); Spacer()
+                BusyMascot(title: "Scanning… \(model.scanned) files")
             } else if !model.hasScanned {
                 Spacer(); Text("Choose filters and press Scan").foregroundStyle(.secondary); Spacer()
             } else if model.visible.isEmpty {
