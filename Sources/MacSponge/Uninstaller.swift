@@ -78,12 +78,30 @@ enum UninstallService {
             .sorted { $0.size > $1.size }
     }
 
+    /// Asks Finder to move the item to the Trash (shows the system password prompt when needed).
+    private static func trashViaFinder(_ url: URL) -> Bool {
+        let escaped = url.path.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        p.arguments = ["-e", "tell application \"Finder\" to delete POSIX file \"\(escaped)\""]
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        do { try p.run() } catch { return false }
+        p.waitUntilExit()
+        return p.terminationStatus == 0 && !FS.fm.fileExists(atPath: url.path)
+    }
+
     static func uninstall(app: AppInfo, leftovers: [Leftover]) -> (trashed: Int, errors: [String]) {
         var ok = 0, errors: [String] = []
         for u in [app.url] + leftovers.map(\.url) {
             guard u == app.url || FS.isSafeToDelete(u) else { continue }
             do { try FS.fm.trashItem(at: u, resultingItemURL: nil); ok += 1 }
-            catch { errors.append("\(u.lastPathComponent): \(error.localizedDescription)") }
+            catch {
+                // root-owned bundles (installed by an admin / installer) can't be trashed directly;
+                // Finder can do it after asking for the admin password
+                if trashViaFinder(u) { ok += 1 }
+                else { errors.append("\(u.lastPathComponent): \(error.localizedDescription)") }
+            }
         }
         return (ok, errors)
     }

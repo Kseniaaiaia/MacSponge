@@ -29,6 +29,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleVersion</key><string>1</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>NSHighResolutionCapable</key><true/>
+  <key>NSAppleEventsUsageDescription</key><string>MacSponge asks Finder to move protected apps to the Trash.</string>
 </dict></plist>
 PLIST
 # A stable signing identity keeps macOS privacy grants (Full Disk Access) across rebuilds;
