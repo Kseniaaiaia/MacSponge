@@ -1,9 +1,9 @@
 import SwiftUI
 
 @main
-struct CleanMacApp: App {
+struct MacSpongeApp: App {
     var body: some Scene {
-        WindowGroup("CleanMac") {
+        WindowGroup("MacSponge") {
             RootView()
         }
         .defaultSize(width: 1000, height: 680)

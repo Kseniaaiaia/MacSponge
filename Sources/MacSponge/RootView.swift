@@ -80,7 +80,7 @@ struct FullDiskAccessBanner: View {
             Image(systemName: "lock.shield").font(.title3)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Full Disk Access needed").bold()
-                Text("Without it macOS hides the Trash and some caches from CleanMac. Add CleanMac in Privacy & Security → Full Disk Access, then reopen the app.")
+                Text("Without it macOS hides the Trash and some caches from MacSponge. Add MacSponge in Privacy & Security → Full Disk Access, then reopen the app.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer()

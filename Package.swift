@@ -2,9 +2,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "CleanMac",
+    name: "MacSponge",
     platforms: [.macOS(.v14)],
     targets: [
-        .executableTarget(name: "CleanMac", path: "Sources/CleanMac")
+        .executableTarget(name: "MacSponge", path: "Sources/MacSponge")
     ]
 )
