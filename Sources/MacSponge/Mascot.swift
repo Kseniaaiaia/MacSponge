@@ -3,7 +3,7 @@ import RiveRuntime
 
 /// Sponge mascot. Plays the first `.riv` found in the app bundle (Contents/Resources/*.riv);
 /// until an animation exists it falls back to the static mascot picture.
-/// Expects the state machine "State Machine 1" with a Bool input `isScanning` (Idle ↔ Dance).
+/// Expects "State Machine 1" driven by the view-model Boolean `isScanning` (false → Idle, true → Dance).
 struct MascotView: View {
     var isScanning: Bool = true
     var size: CGFloat = 180
@@ -27,21 +27,43 @@ struct MascotView: View {
     }
 }
 
+/// Owns the Rive view model and the data-binding handle used to switch Idle ↔ Dance.
+/// The animation is driven by the Boolean property `isScanning` of the default view model ("Main"),
+/// not by a plain state-machine input.
+@MainActor
+private final class MascotController: ObservableObject {
+    let rive: RiveViewModel
+    private var setScanning: (Bool) -> Void = { _ in }
+
+    init(fileName: String) {
+        rive = RiveViewModel(fileName: fileName, stateMachineName: "State Machine 1", fit: .contain)
+        guard let model = rive.riveModel,
+              let viewModel = model.riveFile.defaultViewModel(for: model.artboard),
+              let instance = viewModel.createDefaultInstance() else { return }
+        model.stateMachine?.bind(viewModelInstance: instance)
+        if let flag = instance.booleanProperty(fromPath: "isScanning") {
+            setScanning = { flag.value = $0 }
+        }
+    }
+
+    func set(scanning: Bool) { setScanning(scanning) }
+}
+
 private struct RiveMascot: View {
     let fileName: String
     let isScanning: Bool
-    @StateObject private var rive: RiveViewModel
+    @StateObject private var controller: MascotController
 
     init(fileName: String, isScanning: Bool) {
         self.fileName = fileName
         self.isScanning = isScanning
-        _rive = StateObject(wrappedValue: RiveViewModel(fileName: fileName, stateMachineName: "State Machine 1", fit: .contain))
+        _controller = StateObject(wrappedValue: MascotController(fileName: fileName))
     }
 
     var body: some View {
-        rive.view()
-            .onAppear { rive.setInput("isScanning", value: isScanning) }
-            .onChange(of: isScanning) { _, on in rive.setInput("isScanning", value: on) }
+        controller.rive.view()
+            .onAppear { controller.set(scanning: isScanning) }
+            .onChange(of: isScanning) { _, on in controller.set(scanning: on) }
     }
 }
 
