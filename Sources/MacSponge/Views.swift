@@ -40,13 +40,17 @@ struct JunkView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            PageHeader(title: "System Junk", subtitle: "Caches, logs and developer leftovers that are safe to regenerate.")
+            PageHeader(title: "System Junk", subtitle: "Caches, logs and developer leftovers that are safe to regenerate.") {
+                if model.hasScanned && !(model.isScanning || model.isCleaning) {
+                    Button("Rescan") { Task { await model.scan() } }.buttonStyle(.glassPill)
+                }
+            }
             if model.isScanning || model.isCleaning {
                 BusyMascot(title: model.isCleaning ? "Cleaning…" : "Scanning…")
             } else if !model.hasScanned {
                 Spacer()
                 Button("Scan") { Task { await model.scan() } }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .buttonStyle(.primaryPill)
                 Spacer()
             } else if model.items.isEmpty {
                 Spacer(); Text("Nothing to clean 🎉").foregroundStyle(.secondary); Spacer()
@@ -83,7 +87,6 @@ struct JunkView: View {
             }
             BottomBar(text: model.isCleaning ? "Cleaning \(model.selectedSize.bytesString)… don't close the app"
                       : model.message ?? (model.hasScanned ? "\(model.selectedSize.bytesString) selected of \(model.totalSize.bytesString)" : "")) {
-                Button("Rescan") { Task { await model.scan() } }.disabled(model.isScanning || model.isCleaning)
                 BusyButton(title: "Clean", busyTitle: "Cleaning…", isBusy: model.isCleaning,
                            disabled: model.selection.isEmpty || model.isScanning) { confirm = true }
             }
@@ -196,15 +199,12 @@ struct LargeFilesView: View {
         VStack(spacing: 0) {
             PageHeader(title: "Large & Old Files", subtitle: "Big files in your home folder you haven't touched for a while.")
             HStack {
-                Picker("Bigger than", selection: $model.minSizeMB) {
-                    ForEach(LargeFilesModel.sizeOptions, id: \.mb) { Text($0.label).tag($0.mb) }
-                }.fixedSize()
-                Picker("Not used for", selection: $model.minAgeDays) {
-                    ForEach(LargeFilesModel.ageOptions, id: \.days) { Text($0.label).tag($0.days) }
-                }.fixedSize()
+                PillMenu(title: "Bigger than", options: LargeFilesModel.sizeOptions.map { ($0.label, $0.mb) }, selection: $model.minSizeMB)
+                PillMenu(title: "Not used for", options: LargeFilesModel.ageOptions.map { ($0.label, $0.days) }, selection: $model.minAgeDays)
                 Spacer()
                 Button(model.hasScanned ? "Rescan" : "Scan") { Task { await model.scan() } }
-                    .disabled(model.isScanning)
+                    .buttonStyle(model.hasScanned ? AnyButtonStyle(.glassPill) : AnyButtonStyle(.primaryPill))
+                    .opacity(model.isScanning ? 0 : 1)
             }
             .padding(.horizontal, 24).padding(.bottom, 10)
             Divider()
