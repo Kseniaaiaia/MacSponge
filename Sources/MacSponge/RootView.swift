@@ -87,6 +87,7 @@ struct FullDiskAccessBanner: View {
             Button("Open Settings") {
                 NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
             }
+            .buttonStyle(.glassPill)
         }
         .padding(12)
         .background(.orange.opacity(0.15))
@@ -95,17 +96,26 @@ struct FullDiskAccessBanner: View {
 
 // MARK: - Shared bits
 
-struct PageHeader: View {
+struct PageHeader<Trailing: View>: View {
     let title: String
     let subtitle: String
+    @ViewBuilder var trailing: Trailing
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.title.bold())
-            Text(subtitle).foregroundStyle(.secondary)
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title).font(.title.bold())
+                Text(subtitle).foregroundStyle(.secondary)
+            }
+            Spacer()
+            trailing
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 12)
     }
+}
+
+extension PageHeader where Trailing == EmptyView {
+    init(title: String, subtitle: String) { self.init(title: title, subtitle: subtitle) { EmptyView() } }
 }
 
 struct BottomBar<Trailing: View>: View {
@@ -139,14 +149,17 @@ struct BusyButton: View {
     var disabled = false
     let action: () -> Void
     var body: some View {
+        if !disabled || isBusy { button }
+    }
+    private var button: some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if isBusy { ProgressView().controlSize(.small) }
                 Text(isBusy ? busyTitle : title)
             }
-            .frame(minWidth: 90)
+            .frame(minWidth: 110)
         }
-        .buttonStyle(.borderedProminent)
-        .disabled(disabled || isBusy)
+        .buttonStyle(.primaryPill)
+        .disabled(isBusy)
     }
 }

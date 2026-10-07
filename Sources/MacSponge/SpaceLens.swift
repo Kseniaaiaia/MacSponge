@@ -109,15 +109,16 @@ struct SpaceLensView: View {
         VStack(spacing: 0) {
             PageHeader(title: "Space Lens", subtitle: "See what takes up space. Click a folder to look inside.")
             HStack {
-                Button { Task { await model.back() } } label: { Image(systemName: "chevron.left") }
-                    .disabled(model.path.count <= 1)
+                if model.path.count > 1 {
+                    Button { Task { await model.back() } } label: { Image(systemName: "chevron.left") }
+                        .buttonStyle(.glassPill)
+                }
                 Text((model.current.path as NSString).abbreviatingWithTildeInPath)
                     .font(.callout).lineLimit(1).truncationMode(.head)
                 if model.pending > 0 { ProgressView().controlSize(.small); Text("measuring \(model.pending)…").font(.caption).foregroundStyle(.secondary) }
                 Spacer()
-                Picker("", selection: Binding(get: { model.root }, set: { r in Task { await model.start(r) } })) {
-                    ForEach(SpaceRoot.allCases) { Text($0.rawValue).tag($0) }
-                }.pickerStyle(.segmented).fixedSize()
+                PillPicker(options: Array(SpaceRoot.allCases), label: { $0.rawValue },
+                           selection: Binding(get: { model.root }, set: { r in Task { await model.start(r) } }))
             }
             .padding(.horizontal, 24).padding(.bottom, 10)
             Divider()
